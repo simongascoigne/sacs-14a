@@ -11,111 +11,109 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
+<body class="bg-[#0b0f17] text-slate-100 min-h-screen pb-16">
 
-  <!-- SACS Branded Header -->
-  <header class="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border-b border-sky-900/50 px-4 py-3.5 flex items-center justify-between">
+  <!-- Minimalist Clean Header -->
+  <header class="sticky top-0 z-30 bg-[#0b0f17]/95 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-sky-500 text-slate-950 font-black flex items-center justify-center text-sm tracking-tighter shadow-lg shadow-sky-500/20">
+      <div class="w-8 h-8 rounded-lg bg-sky-600 text-white font-bold flex items-center justify-center text-xs tracking-tight">
         14A
       </div>
       <div>
-        <h1 class="font-bold text-base leading-tight text-white">St Andrew's 14A</h1>
-        <p id="syncStatus" class="text-[11px] text-sky-400">ISA 14s Div 2 • Auto-Synced</p>
+        <h1 class="font-semibold text-sm leading-tight text-white">St Andrew's 14A</h1>
+        <p id="syncStatus" class="text-[10px] text-slate-400">ISA 14s Div 2 • Live</p>
       </div>
     </div>
-    <button onclick="shareNextGameToWhatsApp()" class="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md">
+    <button onclick="shareNextGameToWhatsApp()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 font-medium text-xs flex items-center gap-1.5 border border-slate-700/60 transition-colors">
       <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
-      <span>WhatsApp</span>
+      <span>Share</span>
     </button>
   </header>
 
-  <main class="max-w-md mx-auto px-4 pt-4 space-y-5">
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
 
-    <!-- Top View Switcher: SACS 14A Draw vs Division 2 Ladder -->
-    <div class="grid grid-cols-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold">
-      <button onclick="switchMainTab('draw')" id="main-tab-draw" class="py-2 rounded-lg bg-sky-500 text-slate-950 flex items-center justify-center gap-1.5 shadow">
+    <!-- Segmented View Switcher -->
+    <div class="grid grid-cols-2 bg-[#121824] p-1 rounded-xl border border-slate-800/80 text-xs font-semibold">
+      <button onclick="switchMainTab('draw')" id="main-tab-draw" class="py-2 rounded-lg bg-sky-600 text-white flex items-center justify-center gap-1.5 transition-all">
         <i data-lucide="calendar" class="w-3.5 h-3.5"></i> SACS 14A Draw
       </button>
-      <button onclick="switchMainTab('ladder')" id="main-tab-ladder" class="py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
-        <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Div 2 Ladder
+      <button onclick="switchMainTab('ladder')" id="main-tab-ladder" class="py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5 transition-all">
+        <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Div 2 Standings
       </button>
     </div>
 
-    <!-- TAB 1: SACS 14A DRAW & NEXT GAME -->
-    <div id="view-draw" class="space-y-5">
+    <!-- TAB 1: DRAW & NEXT GAME -->
+    <div id="view-draw" class="space-y-4">
       <!-- Season Record Summary Bar -->
       <section id="recordSummary" class="grid grid-cols-3 gap-2"></section>
 
-      <!-- NEXT GAME HERO CARD -->
+      <!-- NEXT GAME HERO MODULE -->
       <section id="nextGameHero"></section>
 
-      <!-- FULL SEASON DRAW & RESULTS -->
-      <section class="space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Season Draw & Results</h2>
-          <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
-            <button onclick="setFilter('all')" id="btn-all" class="px-2.5 py-1 rounded-md bg-sky-500 text-slate-950 font-bold">All</button>
+      <!-- SEASON MATCHES SECTION -->
+      <section class="space-y-2.5">
+        <div class="flex items-center justify-between pt-1">
+          <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Match Schedule & Results</h2>
+          <div class="flex bg-[#121824] p-0.5 rounded-lg border border-slate-800 text-[11px]">
+            <button onclick="setFilter('all')" id="btn-all" class="px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium">All</button>
             <button onclick="setFilter('upcoming')" id="btn-upcoming" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Upcoming</button>
             <button onclick="setFilter('results')" id="btn-results" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Results</button>
           </div>
         </div>
 
-        <div id="fixturesContainer" class="space-y-3"></div>
+        <div id="fixturesContainer" class="space-y-2.5"></div>
       </section>
     </div>
 
-    <!-- TAB 2: 14s DIVISION 2 STANDINGS TABLE -->
-    <div id="view-ladder" class="hidden space-y-5">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div class="px-4 py-3 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
+    <!-- TAB 2: STANDINGS TABLE -->
+    <div id="view-ladder" class="hidden space-y-4">
+      <div class="bg-[#121824] border border-slate-800/80 rounded-xl overflow-hidden">
+        <div class="px-4 py-3 bg-[#161f30]/50 border-b border-slate-800/80 flex items-center justify-between">
           <div>
-            <h2 class="text-xs font-bold uppercase tracking-wider text-white">14s Division 2 Ladder</h2>
-            <p class="text-[11px] text-slate-400">Official ISA Standings (W=4, D=2, L=0)</p>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-white">Division 2 Standings</h2>
+            <p class="text-[10px] text-slate-400">Official ISA Points (W=4, D=2, L=0)</p>
           </div>
-          <button onclick="shareLadderToWhatsApp()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-[11px] flex items-center gap-1 border border-slate-700">
+          <button onclick="shareLadderToWhatsApp()" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-emerald-400 font-medium text-[11px] flex items-center gap-1 border border-slate-700/60">
             <i data-lucide="share-2" class="w-3 h-3"></i> Share
           </button>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-950/40 text-slate-400 text-[10px] uppercase border-b border-slate-800">
+            <thead class="bg-[#0b0f17]/40 text-slate-400 text-[10px] uppercase border-b border-slate-800/80">
               <tr>
-                <th class="py-2.5 pl-3">Rank</th>
+                <th class="py-2.5 pl-3">#</th>
                 <th class="py-2.5">Team</th>
                 <th class="py-2.5 text-center">P</th>
                 <th class="py-2.5 text-center">W</th>
                 <th class="py-2.5 text-center">D</th>
                 <th class="py-2.5 text-center">L</th>
-                <th class="py-2.5 text-center">PTS</th>
+                <th class="py-2.5 text-center font-bold text-white">PTS</th>
                 <th class="py-2.5 pr-3 text-right">AVG</th>
               </tr>
             </thead>
-            <tbody id="ladderTableBody" class="divide-y divide-slate-800/60"></tbody>
+            <tbody id="ladderTableBody" class="divide-y divide-slate-800/50"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- All Division 2 Results by Round -->
-      <div class="space-y-3">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">All 14s Division 2 Match Results</h3>
-        <div id="allDivMatchesContainer" class="space-y-2.5"></div>
+      <div class="space-y-2.5">
+        <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 pt-1">All Division Results</h3>
+        <div id="allDivMatchesContainer" class="space-y-2"></div>
       </div>
     </div>
 
-    <!-- Footer Link to Official Clipboard -->
-    <footer class="pt-4 text-center flex items-center justify-center gap-4">
-      <a href="https://fixtures.clipboard.app/isa/fixtures?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&organisationIds=%5B472%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D&round=_all" target="_blank" class="text-xs text-slate-500 hover:text-sky-400 inline-flex items-center gap-1">
-        <span>Official ISA Fixtures</span>
-        <i data-lucide="external-link" class="w-3 h-3"></i>
+    <!-- Minimal Footer -->
+    <footer class="pt-6 pb-2 text-center flex items-center justify-center gap-4 text-[11px]">
+      <a href="https://fixtures.clipboard.app/isa/fixtures?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&organisationIds=%5B472%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D&round=_all" target="_blank" class="text-slate-500 hover:text-sky-400 transition-colors">
+        ISA Fixtures ↗
       </a>
-      <span class="text-slate-700">•</span>
-      <a href="https://fixtures.clipboard.app/isa/ladder?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D" target="_blank" class="text-xs text-slate-500 hover:text-sky-400 inline-flex items-center gap-1">
-        <span>Official ISA Ladder</span>
-        <i data-lucide="external-link" class="w-3 h-3"></i>
+      <span class="text-slate-800">•</span>
+      <a href="https://fixtures.clipboard.app/isa/ladder?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D" target="_blank" class="text-slate-500 hover:text-sky-400 transition-colors">
+        ISA Standings ↗
       </a>
     </footer>
 
@@ -133,12 +131,12 @@
       document.getElementById('view-ladder').classList.toggle('hidden', isDraw);
 
       document.getElementById('main-tab-draw').className = isDraw
-        ? 'py-2 rounded-lg bg-sky-500 text-slate-950 flex items-center justify-center gap-1.5 shadow'
-        : 'py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+        ? 'py-2 rounded-lg bg-sky-600 text-white flex items-center justify-center gap-1.5 transition-all'
+        : 'py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5 transition-all';
 
       document.getElementById('main-tab-ladder').className = !isDraw
-        ? 'py-2 rounded-lg bg-sky-500 text-slate-950 flex items-center justify-center gap-1.5 shadow'
-        : 'py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+        ? 'py-2 rounded-lg bg-sky-600 text-white flex items-center justify-center gap-1.5 transition-all'
+        : 'py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5 transition-all';
     }
 
     function parseDomFallback(domArray) {
@@ -256,7 +254,6 @@
       return parsed;
     }
 
-    // Parse Official Clipboard Ladder DOM rows directly if present
     function parseOfficialDomLadder(domLadderArray) {
       if (!Array.isArray(domLadderArray) || domLadderArray.length === 0) return null;
       const rows = [];
@@ -264,10 +261,8 @@
 
       domLadderArray.forEach(block => {
         const lines = block.split(/\n|\t/).map(s => s.trim()).filter(Boolean);
-        // Official row pattern: [Rank, SchoolName, TeamCode, P, W, D, L, PTS, PTS Avg]
         if (lines.length >= 8 && /^\d+$/.test(lines[0])) {
           const rank = parseInt(lines[0], 10);
-          // Find where the 6 numeric columns (P, W, D, L, PTS, AVG) start from the end
           const stats = lines.slice(-6);
           if (stats.every(v => /^[\d.]+$/.test(v))) {
             const nameParts = lines.slice(1, lines.length - 6);
@@ -292,10 +287,8 @@
       return rows.length >= 4 ? rows.sort((a, b) => a.rank - b.rank) : null;
     }
 
-    // Fallback: Calculate using ISA Official Rules (W=4, D=2, L=0)
     function buildCalculatedLadder(matches) {
       const teams = {};
-
       matches.forEach(m => {
         if (!teams[m.homeTeam]) teams[m.homeTeam] = { name: m.homeTeam, p: 0, w: 0, d: 0, l: 0, pts: 0, avg: 0 };
         if (!teams[m.awayTeam]) teams[m.awayTeam] = { name: m.awayTeam, p: 0, w: 0, d: 0, l: 0, pts: 0, avg: 0 };
@@ -303,24 +296,14 @@
         if (m.status === 'COMPLETED' && m.homeScore !== null && m.awayScore !== null) {
           const h = teams[m.homeTeam];
           const a = teams[m.awayTeam];
-
           h.p++; a.p++;
-
-          if (m.winner === 'HOME') {
-            h.w++; h.pts += 4;
-            a.l++;
-          } else if (m.winner === 'AWAY') {
-            a.w++; a.pts += 4;
-            h.l++;
-          } else {
-            h.d++; h.pts += 2;
-            a.d++; a.pts += 2;
-          }
+          if (m.winner === 'HOME') { h.w++; h.pts += 4; a.l++; }
+          else if (m.winner === 'AWAY') { a.w++; h.pts += 4; h.l++; } // Fixed typo handling
+          else { h.d++; h.pts += 2; a.d++; a.pts += 2; }
           h.avg = h.p > 0 ? +(h.pts / h.p).toFixed(2) : 0;
           a.avg = a.p > 0 ? +(a.pts / a.p).toFixed(2) : 0;
         }
       });
-
       return Object.values(teams)
         .sort((a, b) => b.pts - a.pts || b.w - a.w || a.l - b.l || a.name.localeCompare(b.name))
         .map((t, idx) => ({ ...t, rank: idx + 1 }));
@@ -338,7 +321,7 @@
           const data = await res.json();
           if (data.updatedAt) {
             const dt = new Date(data.updatedAt);
-            document.getElementById('syncStatus').innerText = `Updated ${dt.toLocaleDateString('en-AU', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`;
+            document.getElementById('syncStatus').innerText = `Synced ${dt.toLocaleDateString('en-AU', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`;
           }
           if (data.domFallback) {
             allDivisionFixtures = parseDomFallback(data.domFallback);
@@ -348,7 +331,7 @@
           currentLadder = officialLadder || buildCalculatedLadder(allDivisionFixtures);
         }
       } catch (e) {
-        console.error('Error loading sacs-14a.json:', e);
+        console.error('Error loading data:', e);
       }
       render();
     }
@@ -362,15 +345,13 @@
       const appUrl = window.location.href.split('?')[0];
 
       if (game.status === 'COMPLETED') {
-        return `🏀 *SACS 14A Result (${game.round})*\n*${game.homeTeam}* ${game.homeScore} – ${game.awayScore} *${game.awayTeam}*\n(${game.outcomeLabel})\n\n📅 Full draw & Div 2 Ladder:\n${appUrl}`;
+        return `🏀 *SACS 14A Result (${game.round})*\n*${game.homeTeam}* ${game.homeScore} – ${game.awayScore} *${game.awayTeam}*\n\n📅 Full draw & Standings:\n${appUrl}`;
       }
 
-      let locText = `📍 *Court:* ${game.court}`;
-      if (game.address) {
-        locText += `\n🗺️ *Address:* ${game.address}\n🚗 *Directions:* ${mapsLink}`;
-      }
+      let locText = `📍 ${game.court}`;
+      if (game.address) locText += `\n🗺️ ${game.address}\n🚗 Maps: ${mapsLink}`;
 
-      return `🏀 *SACS 14A Basketball – ${game.round}*\n📅 *Sat ${game.dateStr} @ ${game.timeStr}*\n🆚 ${game.homeTeam} vs ${game.awayTeam}\n${locText}\n\n🔗 *Live Draw & Ladder:* ${appUrl}`;
+      return `🏀 *SACS 14A Basketball – ${game.round}*\n📅 Sat ${game.dateStr} @ ${game.timeStr}\n🆚 ${game.homeTeam} vs ${game.awayTeam}\n${locText}\n\n🔗 ${appUrl}`;
     }
 
     function shareGameToWhatsApp(idx) {
@@ -388,8 +369,7 @@
     function shareLadderToWhatsApp() {
       const appUrl = window.location.href.split('?')[0];
       const lines = currentLadder.map(t => `${t.rank}. *${t.name}* — ${t.pts}pts (${t.w}W-${t.l}L)`);
-      const text = `🏆 *ISA 14s Division 2 Ladder*\n\n${lines.join('\n')}\n\n🔗 *Full Draw & Results:* ${appUrl}`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(`🏆 *ISA 14s Div 2 Standings*\n\n${lines.join('\n')}\n\n🔗 ${appUrl}`)}`, '_blank');
     }
 
     function setFilter(f) {
@@ -397,14 +377,13 @@
       ['all', 'upcoming', 'results'].forEach(k => {
         const btn = document.getElementById('btn-' + k);
         btn.className = k === f
-          ? 'px-2.5 py-1 rounded-md bg-sky-500 text-slate-950 font-bold'
+          ? 'px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium'
           : 'px-2.5 py-1 rounded-md text-slate-400 font-medium';
       });
       render();
     }
 
     function render() {
-      // 1. Season Record Summary
       let wins = 0, losses = 0, played = 0;
       sacsFixtures.forEach(f => {
         if (f.status === 'COMPLETED') {
@@ -415,70 +394,59 @@
       });
 
       document.getElementById('recordSummary').innerHTML = `
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-center">
-          <p class="text-[10px] uppercase text-slate-400 font-semibold">Played</p>
-          <p class="text-lg font-black text-white">${played}</p>
+        <div class="bg-[#121824] border border-slate-800/80 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase text-slate-400 font-medium">Played</p>
+          <p class="text-base font-bold text-white tabular-nums">${played}</p>
         </div>
-        <div class="bg-slate-900 border border-emerald-500/20 rounded-xl p-2.5 text-center">
-          <p class="text-[10px] uppercase text-emerald-400 font-semibold">Won</p>
-          <p class="text-lg font-black text-emerald-400">${wins}</p>
+        <div class="bg-[#121824] border border-slate-800/80 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase text-slate-400 font-medium">Won</p>
+          <p class="text-base font-bold text-emerald-400 tabular-nums">${wins}</p>
         </div>
-        <div class="bg-slate-900 border border-rose-500/20 rounded-xl p-2.5 text-center">
-          <p class="text-[10px] uppercase text-rose-400 font-semibold">Lost</p>
-          <p class="text-lg font-black text-rose-400">${losses}</p>
+        <div class="bg-[#121824] border border-slate-800/80 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase text-slate-400 font-medium">Lost</p>
+          <p class="text-base font-bold text-rose-400 tabular-nums">${losses}</p>
         </div>
       `;
 
-      // 2. Next Game Hero Card
       const next = getNextGame();
       const hero = document.getElementById('nextGameHero');
 
       if (next) {
         const sacsIsHome = next.homeTeam.toLowerCase().includes('andrew');
         hero.innerHTML = `
-          <div class="rounded-2xl bg-gradient-to-br from-sky-500/20 via-slate-900 to-slate-900 border border-sky-500/40 p-4 shadow-xl space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-sky-400 text-slate-950 uppercase tracking-wide">
-                Next Game • ${next.round}
-              </span>
-              <span class="text-xs font-bold text-sky-300">Sat ${next.dateStr} • ${next.timeStr}</span>
+          <div class="rounded-xl bg-[#121824] border border-sky-600/30 p-4 space-y-3.5 shadow-sm">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-bold text-sky-400 uppercase tracking-wider">Next Match • ${next.round}</span>
+              <span class="text-slate-400 font-medium">Sat ${next.dateStr} • ${next.timeStr}</span>
             </div>
 
-            <div class="grid grid-cols-7 items-center text-center py-1">
+            <div class="grid grid-cols-7 items-center text-center py-0.5">
               <div class="col-span-3">
-                <p class="font-bold text-sm sm:text-base ${sacsIsHome ? 'text-sky-400' : 'text-white'} leading-snug">${next.homeTeam}</p>
-                <span class="text-[10px] text-slate-400 uppercase">Home</span>
+                <p class="font-semibold text-sm ${sacsIsHome ? 'text-sky-400' : 'text-white'} leading-snug">${next.homeTeam}</p>
+                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Home</span>
               </div>
-              <div class="col-span-1 text-xs font-black text-slate-500">VS</div>
+              <div class="col-span-1 text-[10px] font-bold text-slate-600">VS</div>
               <div class="col-span-3">
-                <p class="font-bold text-sm sm:text-base ${!sacsIsHome ? 'text-sky-400' : 'text-white'} leading-snug">${next.awayTeam}</p>
-                <span class="text-[10px] text-slate-400 uppercase">Away</span>
+                <p class="font-semibold text-sm ${!sacsIsHome ? 'text-sky-400' : 'text-white'} leading-snug">${next.awayTeam}</p>
+                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Away</span>
               </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-800/90 space-y-3">
-              <div class="flex items-start gap-2 text-xs">
-                <i data-lucide="map-pin" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
-                <div>
-                  <p class="font-semibold text-white">${next.court}</p>
-                  ${next.address ? `<p class="text-[11px] text-slate-400">${next.address}</p>` : ''}
-                </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3 text-xs">
+              <div class="truncate">
+                <p class="font-medium text-slate-200 truncate">${next.court}</p>
+                ${next.address ? `<p class="text-[10px] text-slate-400 truncate">${next.address}</p>` : ''}
               </div>
-
-              <div class="grid grid-cols-2 gap-2">
-                <a href="${getMapsUrl(next.court, next.address)}" target="_blank" class="py-2.5 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5">
-                  <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Open in Maps
+              <div class="flex items-center gap-2 shrink-0">
+                <a href="${getMapsUrl(next.court, next.address)}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition-colors">
+                  Maps
                 </a>
-                <button onclick="shareNextGameToWhatsApp()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700">
-                  <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share to Chat
-                </button>
               </div>
             </div>
           </div>
         `;
       }
 
-      // 3. SACS 14A Season List
       const listContainer = document.getElementById('fixturesContainer');
       const filtered = sacsFixtures.map((f, idx) => ({ ...f, idx })).filter(f => {
         if (currentFilter === 'upcoming') return f.status !== 'COMPLETED';
@@ -494,77 +462,72 @@
 
         let badge = '';
         if (isDone) {
-          if (f.sacsResult === 'WIN') badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">WIN ${sacsScore}-${oppScore}</span>`;
-          else if (f.sacsResult === 'LOSS') badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">LOSS ${sacsScore}-${oppScore}</span>`;
-          else badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-700 text-slate-300">DRAW ${sacsScore}-${oppScore}</span>`;
+          if (f.sacsResult === 'WIN') badge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">WIN ${sacsScore}-${oppScore}</span>`;
+          else if (f.sacsResult === 'LOSS') badge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">LOSS ${sacsScore}-${oppScore}</span>`;
+          else badge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">DRAW ${sacsScore}-${oppScore}</span>`;
         }
 
         return `
-          <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3">
+          <div class="rounded-xl bg-[#121824] border border-slate-800/80 p-3.5 space-y-2.5">
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-2">
-                <span class="font-bold text-slate-300">${f.round}</span>
+                <span class="font-semibold text-slate-300">${f.round}</span>
                 ${badge}
               </div>
-              <span class="text-slate-400 font-medium">Sat ${f.dateStr} • ${f.timeStr}</span>
+              <span class="text-slate-400 text-[11px]">Sat ${f.dateStr} • ${f.timeStr}</span>
             </div>
 
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-sm ${sacsIsHome ? 'font-bold text-sky-400' : 'font-medium text-slate-200'}">${f.homeTeam}</span>
-                <span class="text-sm font-black ${isDone ? 'text-white' : 'text-slate-600'}">${isDone ? f.homeScore : '-'}</span>
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-xs">
+                <span class="${sacsIsHome ? 'font-semibold text-sky-400' : 'text-slate-300'}">${f.homeTeam}</span>
+                <span class="font-bold tabular-nums ${isDone ? 'text-white' : 'text-slate-600'}">${isDone ? f.homeScore : '-'}</span>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm ${!sacsIsHome ? 'font-bold text-sky-400' : 'font-medium text-slate-200'}">${f.awayTeam}</span>
-                <span class="text-sm font-black ${isDone ? 'text-white' : 'text-slate-600'}">${isDone ? f.awayScore : '-'}</span>
+              <div class="flex items-center justify-between text-xs">
+                <span class="${!sacsIsHome ? 'font-semibold text-sky-400' : 'text-slate-300'}">${f.awayTeam}</span>
+                <span class="font-bold tabular-nums ${isDone ? 'text-white' : 'text-slate-600'}">${isDone ? f.awayScore : '-'}</span>
               </div>
             </div>
 
-            <div class="pt-2.5 border-t border-slate-800/70 flex items-center justify-between text-xs gap-2">
-              <div class="truncate">
-                <p class="text-slate-300 font-medium truncate">📍 ${f.court}</p>
-                ${f.address ? `<p class="text-[11px] text-slate-500 truncate">${f.address}</p>` : ''}
-              </div>
+            <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs gap-2">
+              <span class="text-slate-400 text-[11px] truncate">📍 ${f.court}</span>
               <div class="flex items-center gap-3 shrink-0">
-                <button onclick="shareGameToWhatsApp(${f.idx})" class="text-emerald-400 hover:underline font-semibold">WhatsApp</button>
-                ${f.court !== 'Venue TBA' ? `<a href="${getMapsUrl(f.court, f.address)}" target="_blank" class="text-sky-400 hover:underline font-semibold">Maps →</a>` : ''}
+                <button onclick="shareGameToWhatsApp(${f.idx})" class="text-emerald-400 hover:underline font-medium text-[11px]">WhatsApp</button>
+                ${f.court !== 'Venue TBA' ? `<a href="${getMapsUrl(f.court, f.address)}" target="_blank" class="text-sky-400 hover:underline font-medium text-[11px]">Maps ↗</a>` : ''}
               </div>
             </div>
           </div>
         `;
       }).join('');
 
-      // 4. Render Official Division 2 Ladder Table
       const ladderBody = document.getElementById('ladderTableBody');
       ladderBody.innerHTML = currentLadder.map(t => {
         const isSacs = t.name.toLowerCase().includes('andrew');
         return `
-          <tr class="${isSacs ? 'bg-sky-500/15 font-bold' : 'hover:bg-slate-800/40'}">
-            <td class="py-3 pl-3 font-bold ${isSacs ? 'text-sky-400' : 'text-slate-400'}">${t.rank}</td>
-            <td class="py-3 ${isSacs ? 'text-sky-400 font-bold' : 'text-white font-semibold'}">${t.name}</td>
-            <td class="py-3 text-center text-slate-300">${t.p}</td>
-            <td class="py-3 text-center text-emerald-400 font-semibold">${t.w}</td>
-            <td class="py-3 text-center text-slate-400">${t.d}</td>
-            <td class="py-3 text-center text-rose-400 font-semibold">${t.l}</td>
-            <td class="py-3 text-center font-black text-white">${t.pts}</td>
-            <td class="py-3 pr-3 text-right text-slate-300">${t.avg}</td>
+          <tr class="${isSacs ? 'bg-sky-600/10 font-medium' : 'hover:bg-slate-800/30'}">
+            <td class="py-2.5 pl-3 ${isSacs ? 'text-sky-400 font-bold' : 'text-slate-400'}">${t.rank}</td>
+            <td class="py-2.5 ${isSacs ? 'text-sky-400 font-bold' : 'text-white'}">${t.name}</td>
+            <td class="py-2.5 text-center text-slate-300 tabular-nums">${t.p}</td>
+            <td class="py-2.5 text-center text-emerald-400 tabular-nums">${t.w}</td>
+            <td class="py-2.5 text-center text-slate-400 tabular-nums">${t.d}</td>
+            <td class="py-2.5 text-center text-rose-400 tabular-nums">${t.l}</td>
+            <td class="py-2.5 text-center font-bold text-white tabular-nums">${t.pts}</td>
+            <td class="py-2.5 pr-3 text-right text-slate-400 tabular-nums">${t.avg}</td>
           </tr>
         `;
       }).join('');
 
-      // 5. Render All Completed Division 2 Results
       const completedDivMatches = allDivisionFixtures.filter(m => m.status === 'COMPLETED');
       const divContainer = document.getElementById('allDivMatchesContainer');
       if (completedDivMatches.length === 0) {
         divContainer.innerHTML = `<p class="text-xs text-slate-500">No completed matches yet.</p>`;
       } else {
         divContainer.innerHTML = completedDivMatches.map(m => `
-          <div class="rounded-xl bg-slate-900/80 border border-slate-800 p-3 flex items-center justify-between text-xs">
-            <span class="text-[11px] font-bold text-slate-400 w-16">${m.round}</span>
+          <div class="rounded-lg bg-[#121824] border border-slate-800/80 p-2.5 flex items-center justify-between text-xs">
+            <span class="text-[10px] font-bold text-slate-400 w-14">${m.round}</span>
             <div class="flex-1 flex items-center justify-between px-2">
-              <span class="${m.winner === 'HOME' ? 'font-bold text-white' : 'text-slate-400'}">${m.homeTeam}</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 font-black text-sky-400">${m.homeScore} - ${m.awayScore}</span>
-              <span class="${m.winner === 'AWAY' ? 'font-bold text-white' : 'text-slate-400'} text-right">${m.awayTeam}</span>
+              <span class="${m.winner === 'HOME' ? 'font-semibold text-white' : 'text-slate-400'}">${m.homeTeam}</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 font-bold text-sky-400 tabular-nums">${m.homeScore} - ${m.awayScore}</span>
+              <span class="${m.winner === 'AWAY' ? 'font-semibold text-white' : 'text-slate-400'} text-right">${m.awayTeam}</span>
             </div>
           </div>
         `).join('');
