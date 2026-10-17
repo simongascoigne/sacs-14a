@@ -1,0 +1,41 @@
+name: Auto-Sync SACS 14A Fixtures
+
+on:
+  schedule:
+    # Every 20 mins on Saturdays during game hours (21:00 Fri to 06:00 Sat UTC = 8am-5pm AEDT Sat)
+    - cron: '*/20 21-23 * * 5'
+    - cron: '*/20 0-6 * * 6'
+    # Twice daily on Tue, Thu, Fri at 7:00am and 7:00pm AEDT to catch court/time changes
+    - cron: '0 8,20 * * 2,4,5'
+  workflow_dispatch: # Allows manual 1-click refresh in GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright & Chromium
+        run: |
+          npm init -y
+          npm install playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run Clipboard Sync Script
+        run: node sync.js
+
+      - name: Commit and Push Updated JSON
+        run: |
+          git config user.name "SACS 14A Auto-Bot"
+          git config user.email "actions@github.com"
+          git add sacs-14a.json
+          git diff --staged --quiet || (git commit -m "Auto-update SACS 14A fixtures" && git push)
