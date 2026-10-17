@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SACS 14A" />
+  <title>SACS 14A Basketball • Fixtures & Results</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
+
+  <!-- SACS Branded Header -->
+  <header class="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border-b border-sky-900/50 px-4 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-sky-500 text-slate-950 font-black flex items-center justify-center text-sm tracking-tighter shadow-lg shadow-sky-500/20">
+        14A
+      </div>
+      <div>
+        <h1 class="font-bold text-base leading-tight text-white">St Andrew's 14A</h1>
+        <p id="syncStatus" class="text-[11px] text-sky-400">ISA Basketball • Auto-Synced</p>
+      </div>
+    </div>
+    <button onclick="shareNextGameToWhatsApp()" class="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md">
+      <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+      <span>WhatsApp</span>
+    </button>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-6">
+
+    <!-- NEXT GAME HERO CARD -->
+    <section id="nextGameHero"></section>
+
+    <!-- FULL SEASON DRAW & RESULTS -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Season Draw & Results</h2>
+        <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+          <button onclick="setFilter('all')" id="btn-all" class="px-2.5 py-1 rounded-md bg-sky-500 text-slate-950 font-bold">All</button>
+          <button onclick="setFilter('upcoming')" id="btn-upcoming" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Upcoming</button>
+          <button onclick="setFilter('results')" id="btn-results" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Results</button>
+        </div>
+      </div>
+
+      <div id="fixturesContainer" class="space-y-3"></div>
+    </section>
+
+    <!-- Footer Link to Official Clipboard -->
+    <footer class="pt-4 text-center">
+      <a href="https://fixtures.clipboard.app/isa/fixtures?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&organisationIds=%5B472%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D&round=_all" target="_blank" class="text-xs text-slate-500 hover:text-sky-400 inline-flex items-center gap-1">
+        <span>View raw ISA Clipboard source</span>
+        <i data-lucide="external-link" class="w-3 h-3"></i>
+      </a>
+    </footer>
+
+  </main>
+
+  <script>
+    // ISA Venue Decoder -> Real street addresses for Google/Apple Maps
+    const VENUE_MAP = {
+      "SUSAC": "Sydney Uni Sport & Aquatic Centre, Darlington Ln, Darlington NSW 2008",
+      "Sydney Uni": "Sydney Uni Sport & Aquatic Centre, Darlington Ln, Darlington NSW 2008",
+      "SACS": "St Andrew's Cathedral School, 474 Kent St, Sydney NSW 2000",
+      "OAK": "Oakhill College Centenary Sports Centre, 423 Old Northern Rd, Castle Hill NSW 2154",
+      "Centenary": "Oakhill College Centenary Sports Centre, 423 Old Northern Rd, Castle Hill NSW 2154",
+      "Benildus": "Oakhill College, 423 Old Northern Rd, Castle Hill NSW 2154",
+      "NBISC": "Northern Beaches Indoor Sports Centre, Jacksons Rd, Warriewood NSW 2102",
+      "AUG": "Northern Beaches Indoor Sports Centre, Jacksons Rd, Warriewood NSW 2102",
+      "RED": "Galuwa Recreation Centre, Lane Cove NSW 2066",
+      "Galuwa": "Galuwa Recreation Centre, Lane Cove NSW 2066",
+      "RLC": "Redlands, 272 Military Rd, Cremorne NSW 2090",
+      "BAR": "Barker College Rosewood Centre, Unwin Rd, Waitara NSW 2077",
+      "Rosewood": "Barker College Rosewood Centre, Unwin Rd, Waitara NSW 2077",
+      "SPC": "St Patrick's College, Francis St, Strathfield NSW 2135",
+      "Auburn": "Auburn Basketball Centre, Church St, Lidcombe NSW 2141",
+      "SPX": "St Pius X College Oxford Falls, Dreadnought Rd, Oxford Falls NSW 2100",
+      "SPY": "Hoops Capital East, 1 Driver Ave, Moore Park NSW 2021"
+    };
+
+    function resolveAddress(venueStr) {
+      if (!venueStr) return "Sydney NSW";
+      for (const [key, addr] of Object.entries(VENUE_MAP)) {
+        if (venueStr.toLowerCase().includes(key.toLowerCase())) return addr;
+      }
+      return venueStr + " NSW";
+    }
+
+    function getMapsUrl(venueStr, rawAddress) {
+      const query = rawAddress || resolveAddress(venueStr);
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    }
+
+    let currentFilter = 'all';
+    let fixtures = [];
+
+    //Recursively find the fixture array inside Clipboard's JSON payload
+    function extractFixturesFromClipboard(payloads) {
+      const found = [];
+      function walk(obj) {
+        if (!obj || typeof obj !== 'object') return;
+        if (Array.isArray(obj)) {
+          obj.forEach(item => {
+            if (item && typeof item === 'object' && (item.homeTeam || item.awayTeam || item.startTime || item.dateTime)) {
+              found.push({
+                round: item.roundName || item.round?.name || item.round || `Round ${found.length + 1}`,
+                date: item.startTime || item.dateTime || item.date,
+                homeTeam: item.homeTeam?.name || item.homeOrganisation?.name || item.homeTeam || "TBA",
+                awayTeam: item.awayTeam?.name || item.awayOrganisation?.name || item.awayTeam || "TBA",
+                homeScore: item.homeScore ?? item.homeTeam?.score ?? null,
+                awayScore: item.awayScore ?? item.awayTeam?.score ?? null,
+                venue: item.facility?.name || item.location?.name || item.venueName || item.venue || "TBA",
+                address: item.facility?.address || item.location?.address || null,
+                status: (item.status === 'COMPLETED' || item.status === 'COMPLETE' || (item.homeScore !== null && item.homeScore !== undefined)) ? 'COMPLETED' : 'UPCOMING'
+              });
+            } else {
+              walk(item);
+            }
+          });
+        } else {
+          Object.values(obj).forEach(walk);
+        }
+      }
+      walk(payloads);
+      return found.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('./sacs-14a.json?t=' + Date.now());
+        if (res.ok) {
+          const data = await res.json();
+          if (data.updatedAt) {
+            const dt = new Date(data.updatedAt);
+            document.getElementById('syncStatus').innerText = `Updated ${dt.toLocaleDateString('en-AU', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`;
+          }
+          const extracted = extractFixturesFromClipboard(data.apiPayloads || data);
+          if (extracted.length > 0) fixtures = extracted;
+        }
+      } catch (e) {
+        console.log('Using fallback preview fixtures until first GitHub Action run completes.');
+      }
+      render();
+    }
+
+    function getNextGame() {
+      const now = new Date();
+      return fixtures.find(f => f.status !== 'COMPLETED' && new Date(f.date) >= new Date(now - 3 * 3600000)) || fixtures[fixtures.length - 1];
+    }
+
+    function formatWhatsAppText(game) {
+      const dt = new Date(game.date);
+      const dateStr = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+      const timeStr = dt.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
+      const addr = game.address || resolveAddress(game.venue);
+      const mapsLink = getMapsUrl(game.venue, game.address);
+
+      if (game.status === 'COMPLETED') {
+        return `🏀 *SACS 14A Final Score (${game.round})*\n${game.homeTeam} ${game.homeScore} - ${game.awayScore} ${game.awayTeam}\n\n📅 Full draw & next week's details: ${window.location.href}`;
+      }
+      return `🏀 *SACS 14A Basketball – ${game.round}*\n📅 *${dateStr} at ${timeStr}*\n🆚 ${game.homeTeam} vs ${game.awayTeam}\n📍 *Court:* ${game.venue}\n🗺️ *Address:* ${addr}\n🚗 *Directions:* ${mapsLink}\n\n🔗 *Live Draw & Scores:* ${window.location.href}`;
+    }
+
+    function shareGameToWhatsApp(idx) {
+      const game = fixtures[idx];
+      if (!game) return;
+      const text = formatWhatsAppText(game);
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function shareNextGameToWhatsApp() {
+      const next = getNextGame();
+      if (!next) return;
+      const text = formatWhatsAppText(next);
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function setFilter(f) {
+      currentFilter = f;
+      ['all', 'upcoming', 'results'].forEach(k => {
+        const btn = document.getElementById('btn-' + k);
+        btn.className = k === f
+          ? 'px-2.5 py-1 rounded-md bg-sky-500 text-slate-950 font-bold'
+          : 'px-2.5 py-1 rounded-md text-slate-400 font-medium';
+      });
+      render();
+    }
+
+    function render() {
+      const next = getNextGame();
+      const hero = document.getElementById('nextGameHero');
+
+      if (next) {
+        const dt = new Date(next.date);
+        const dateStr = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+        const timeStr = dt.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
+        const decodedAddr = next.address || resolveAddress(next.venue);
+
+        hero.innerHTML = `
+          <div class="rounded-2xl bg-gradient-to-br from-sky-500/20 via-slate-900 to-slate-900 border border-sky-500/40 p-4 shadow-xl space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-sky-400 text-slate-950 uppercase tracking-wide">
+                Next Game • ${next.round}
+              </span>
+              <span class="text-xs font-bold text-sky-300">${dateStr} • ${timeStr}</span>
+            </div>
+
+            <div class="grid grid-cols-7 items-center text-center py-1">
+              <div class="col-span-3">
+                <p class="font-bold text-sm sm:text-base text-white leading-snug">${next.homeTeam}</p>
+                <span class="text-[10px] text-slate-400 uppercase">Home</span>
+              </div>
+              <div class="col-span-1 text-xs font-black text-slate-500">VS</div>
+              <div class="col-span-3">
+                <p class="font-bold text-sm sm:text-base text-white leading-snug">${next.awayTeam}</p>
+                <span class="text-[10px] text-slate-400 uppercase">Away</span>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800/90 space-y-3">
+              <div class="flex items-start gap-2 text-xs">
+                <i data-lucide="map-pin" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
+                <div>
+                  <p class="font-semibold text-white">${next.venue}</p>
+                  <p class="text-[11px] text-slate-400">${decodedAddr}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <a href="${getMapsUrl(next.venue, next.address)}" target="_blank" class="py-2.5 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5">
+                  <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Open in Maps
+                </a>
+                <button onclick="shareNextGameToWhatsApp()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700">
+                  <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Share Game
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const listContainer = document.getElementById('fixturesContainer');
+      const filtered = fixtures.map((f, idx) => ({ ...f, idx })).filter(f => {
+        if (currentFilter === 'upcoming') return f.status !== 'COMPLETED';
+        if (currentFilter === 'results') return f.status === 'COMPLETED';
+        return true;
+      });
+
+      listContainer.innerHTML = filtered.map(f => {
+        const dt = new Date(f.date);
+        const dateStr = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+        const timeStr = dt.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
+        const isDone = f.status === 'COMPLETED';
+
+        const sacsIsHome = f.homeTeam.toLowerCase().includes('andrew') || f.homeTeam.toLowerCase().includes('sacs');
+        const sacsScore = sacsIsHome ? Number(f.homeScore) : Number(f.awayScore);
+        const oppScore = sacsIsHome ? Number(f.awayScore) : Number(f.homeScore);
+        let badge = '';
+        if (isDone && f.homeScore !== null) {
+          if (sacsScore > oppScore) badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">WIN</span>`;
+          else if (sacsScore < oppScore) badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">LOSS</span>`;
+          else badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-700 text-slate-300">DRAW</span>`;
+        }
+
+        return `
+          <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-300">${f.round}</span>
+                ${badge}
+              </div>
+              <span class="text-slate-400 font-medium">${dateStr} • ${timeStr}</span>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-sm ${sacsIsHome ? 'font-bold text-sky-400' : 'font-medium text-slate-200'}">${f.homeTeam}</span>
+                <span class="text-sm font-black ${isDone ? 'text-white' : 'text-slate-600'}">${isDone ? f.homeScore : '-'}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm ${!sacsIsHome ? 'font-bold text-sky-400' : 'font-medium text-slate-200'}">${f.awayTeam}</span>
+                <span class="text-sm font-black ${isDone ? 'text-white' : 'text-slate-600'}">${isDone ? f.awayScore : '-'}</span>
+              </div>
+            </div>
+
+            <div class="pt-2.5 border-t border-slate-800/70 flex items-center justify-between text-xs">
+              <span class="text-slate-400 truncate pr-2">📍 ${f.venue}</span>
+              <div class="flex items-center gap-3 shrink-0">
+                <button onclick="shareGameToWhatsApp(${f.idx})" class="text-emerald-400 hover:underline font-medium">WhatsApp</button>
+                <a href="${getMapsUrl(f.venue, f.address)}" target="_blank" class="text-sky-400 hover:underline font-semibold">Maps →</a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
