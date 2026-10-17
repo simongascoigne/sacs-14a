@@ -1,0 +1,51 @@
+{
+  "team": "St Andrew's 14A",
+  "updatedAt": "2026-10-17T06:21:28.838Z",
+  "sourceUrl": "https://fixtures.clipboard.app/isa/fixtures?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&organisationIds=%5B472%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D&round=_all",
+  "apiPayloads": [
+    {
+      "url": "https://fixtures.clipboard.app/data/ap-southeast-2-app-config.json?cache-bust=0.6727097983660527",
+      "data": {
+        "environment": "production",
+        "apiUrl": "https://internal-api.clipboard.app/association-api",
+        "release": "80c3bb6ff61dae5c11be7c55ebadc9b9bd6f89ad",
+        "sentryDsn": "https://a212d3e8160e4c9baf694508e4ff83f6@o316162.ingest.sentry.io/4504438635364352",
+        "s3PublicAssetsUrl": "https://clipboard-public-assets-production.s3.ap-southeast-2.amazonaws.com",
+        "googleMapsApiKey": "AIzaSyA5-uzfEXep0_oE5Xpg1N5VW8u4fPozFWw",
+        "intercomAppId": "aan0bfqi",
+        "mixpanelApiToken": "593e32ffdf99ccdb8357822a06fe16b5",
+        "mixpanelOptions": {
+          "record_sessions_percent": 100,
+          "record_mask_text_selector": ""
+        }
+      }
+    },
+    {
+      "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+      "data": {}
+    }
+  ],
+  "domFallback": [
+    "Round\nActivity\nHome\nAway\nResults\nDetails",
+    "Round 1\nBasketball\nBasketball - Boys\nOakhill\n14s - Division 2\n14B\nvs\nSt Andrew's\n14s - Division 2\n14A\n33 - 40\nOakhill wins\ncalendar_today\n17 Oct 2026\n9:00am\nlocation_on\nCentenary Sports Centre - Court 2\n(OAK - School Grounds)\n423/513 Old Northern Rd, Castle Hill NSW 2154, Australia",
+    "SACS",
+    "Round 2\nBasketball\nBasketball - Boys\nSt Stanislaus'\n14s - Division 2\n14A\nvs\nSt Andrew's\n14s - Division 2\n14A\n-\ncalendar_today\n24 Oct 2026\n10:00am\nlocation_on\nIndoor Recreation Venue - Court 2\n(SSC - School Grounds)\n220 Bentinck St, Bathurst NSW 2795, Australia",
+    "SACS",
+    "Round 3\nBasketball\nBasketball - Boys\nSt Pius\n14s - Division 2\n14 B\nvs\nSt Andrew's\n14s - Division 2\n14A\n-\ncalendar_today\n31 Oct 2026\n11:00am\nlocation_on\nCBC - Court 1\n(SPX - Oxford Falls Playing Fields Complex)\n1 Dreadnought Rd, Oxford Falls NSW 2099, Australia",
+    "SACS",
+    "Round 4\nBasketball\nBasketball - Boys\nSt Andrew's\n14s - Division 2\n14A\nvs\nSt Augustine's\n14s - Division 2\n14B\n-\ncalendar_today\n7 Nov 2026\n1:00pm\nlocation_on\nSydney Uni Sport & Aquatic Centre - Court 1\n(SACS - Sydney Uni Sport & Aquatic Centre)\nDarlington Ln & Codrington St, Darlington NSW 2008, Australia",
+    "SACS",
+    "Round 5\nBasketball\nBasketball - Boys\nSt Paul's Grammar\n14s - Division 2\n14A\nvs\nSt Andrew's\n14s - Division 2\n14A\n-\ncalendar_today\n14 Nov 2026\n9:30am\nlocation_on\nSPGS - School Grounds\nSt Pauls Grammar School, 52 Taylor Rd, Cranebrook NSW 2749, Australia",
+    "SACS",
+    "Round 6\nBasketball\nBasketball - Boys\nSt Andrew's\n14s - Division 2\n14A\nvs\nOakhill\n14s - Division 2\n14B\n-\ncalendar_today\n21 Nov 2026\n11:00am\nlocation_on\nSydney Uni Sport & Aquatic Centre - Court 2\n(SACS - Sydney Uni Sport & Aquatic Centre)\nDarlington Ln & Codrington St, Darlington NSW 2008, Australia",
+    "SACS",
+    "Round 7\nBasketball\nBasketball - Boys\nSt Andrew's\n14s - Division 2\n14A\nvs\nSt Stanislaus'\n14s - Division 2\n14A\n-\ncalendar_today\n28 Nov 2026\n1:00pm\nlocation_on\nSydney Uni Sport & Aquatic Centre - Court 2\n(SACS - Sydney Uni Sport & Aquatic Centre)\nDarlington Ln & Codrington St, Darlington NSW 2008, Australia",
+    "SACS",
+    "Round 8\nBasketball\nBasketball - Boys\nSt Augustine's\n14s - Division 2\n14B\nvs\nSt Andrew's\n14s - Division 2\n14A\n-\ncalendar_today\n6 Feb 2027\n2:34am\nlocation_on\n-",
+    "SACS",
+    "Round 9\nBasketball\nBasketball - Boys\nSt Andrew's\n14s - Division 2\n14A\nvs\nSt Pius\n14s - Division 2\n14 B\n-\ncalendar_today\n13 Feb 2027\n2:34am\nlocation_on\n-",
+    "SACS",
+    "Round 10\nBasketball\nBasketball - Boys\nSt Andrew's\n14s - Division 2\n14A\nvs\nSt Paul's Grammar\n14s - Division 2\n14A\n-\ncalendar_today\n20 Feb 2027\n2:34am\nlocation_on\n-",
+    "SACS"
+  ]
+}
