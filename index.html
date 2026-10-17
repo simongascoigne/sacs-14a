@@ -298,7 +298,7 @@
           const a = teams[m.awayTeam];
           h.p++; a.p++;
           if (m.winner === 'HOME') { h.w++; h.pts += 4; a.l++; }
-          else if (m.winner === 'AWAY') { a.w++; h.pts += 4; h.l++; } // Fixed typo handling
+          else if (m.winner === 'AWAY') { a.w++; a.pts += 4; h.l++; }
           else { h.d++; h.pts += 2; a.d++; a.pts += 2; }
           h.avg = h.p > 0 ? +(h.pts / h.p).toFixed(2) : 0;
           a.avg = a.p > 0 ? +(a.pts / a.p).toFixed(2) : 0;
@@ -438,6 +438,9 @@
                 ${next.address ? `<p class="text-[10px] text-slate-400 truncate">${next.address}</p>` : ''}
               </div>
               <div class="flex items-center gap-2 shrink-0">
+                <button onclick="shareNextGameToWhatsApp()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 font-medium text-xs flex items-center gap-1 border border-slate-700/60 transition-colors">
+                  <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share
+                </button>
                 <a href="${getMapsUrl(next.court, next.address)}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition-colors">
                   Maps
                 </a>
