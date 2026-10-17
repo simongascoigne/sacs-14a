@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="SACS 14A" />
-  <title>SACS 14A Basketball • Fixtures & Results</title>
+  <title>SACS 14A Basketball • Fixtures & Ladder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -32,32 +32,89 @@
     </button>
   </header>
 
-  <main class="max-w-md mx-auto px-4 pt-4 space-y-6">
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-5">
 
-    <!-- Season Record Summary Bar -->
-    <section id="recordSummary" class="grid grid-cols-3 gap-2"></section>
+    <!-- Top View Switcher: SACS 14A Draw vs Division 2 Ladder -->
+    <div class="grid grid-cols-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+      <button onclick="switchMainTab('draw')" id="main-tab-draw" class="py-2 rounded-lg bg-sky-500 text-slate-950 flex items-center justify-center gap-1.5 shadow">
+        <i data-lucide="calendar" class="w-3.5 h-3.5"></i> SACS 14A Draw
+      </button>
+      <button onclick="switchMainTab('ladder')" id="main-tab-ladder" class="py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+        <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Div 2 Ladder
+      </button>
+    </div>
 
-    <!-- NEXT GAME HERO CARD -->
-    <section id="nextGameHero"></section>
+    <!-- TAB 1: SACS 14A DRAW & NEXT GAME -->
+    <div id="view-draw" class="space-y-5">
+      <!-- Season Record Summary Bar -->
+      <section id="recordSummary" class="grid grid-cols-3 gap-2"></section>
 
-    <!-- FULL SEASON DRAW & RESULTS -->
-    <section class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Season Draw & Results</h2>
-        <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
-          <button onclick="setFilter('all')" id="btn-all" class="px-2.5 py-1 rounded-md bg-sky-500 text-slate-950 font-bold">All</button>
-          <button onclick="setFilter('upcoming')" id="btn-upcoming" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Upcoming</button>
-          <button onclick="setFilter('results')" id="btn-results" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Results</button>
+      <!-- NEXT GAME HERO CARD -->
+      <section id="nextGameHero"></section>
+
+      <!-- FULL SEASON DRAW & RESULTS -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Season Draw & Results</h2>
+          <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+            <button onclick="setFilter('all')" id="btn-all" class="px-2.5 py-1 rounded-md bg-sky-500 text-slate-950 font-bold">All</button>
+            <button onclick="setFilter('upcoming')" id="btn-upcoming" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Upcoming</button>
+            <button onclick="setFilter('results')" id="btn-results" class="px-2.5 py-1 rounded-md text-slate-400 font-medium">Results</button>
+          </div>
+        </div>
+
+        <div id="fixturesContainer" class="space-y-3"></div>
+      </section>
+    </div>
+
+    <!-- TAB 2: 14s DIVISION 2 STANDINGS TABLE -->
+    <div id="view-ladder" class="hidden space-y-5">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-4 py-3 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-white">14s Division 2 Ladder</h2>
+            <p class="text-[11px] text-slate-400">Calculated from completed division games (W=3, D=2, L=1)</p>
+          </div>
+          <button onclick="shareLadderToWhatsApp()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-[11px] flex items-center gap-1 border border-slate-700">
+            <i data-lucide="share-2" class="w-3 h-3"></i> Share
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/40 text-slate-400 text-[10px] uppercase border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 pl-3">#</th>
+                <th class="py-2.5">Team</th>
+                <th class="py-2.5 text-center">P</th>
+                <th class="py-2.5 text-center">W</th>
+                <th class="py-2.5 text-center">L</th>
+                <th class="py-2.5 text-center">F/A</th>
+                <th class="py-2.5 text-center">+/-</th>
+                <th class="py-2.5 pr-3 text-right">PTS</th>
+              </tr>
+            </thead>
+            <tbody id="ladderTableBody" class="divide-y divide-slate-800/60"></tbody>
+          </table>
         </div>
       </div>
 
-      <div id="fixturesContainer" class="space-y-3"></div>
-    </section>
+      <!-- Other Division 2 Results by Round -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">All 14s Division 2 Match Results</h3>
+        <div id="allDivMatchesContainer" class="space-y-2.5"></div>
+      </div>
+    </div>
 
     <!-- Footer Link to Official Clipboard -->
-    <footer class="pt-4 text-center">
+    <footer class="pt-4 text-center flex items-center justify-center gap-4">
       <a href="https://fixtures.clipboard.app/isa/fixtures?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&organisationIds=%5B472%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D&round=_all" target="_blank" class="text-xs text-slate-500 hover:text-sky-400 inline-flex items-center gap-1">
-        <span>View raw ISA Clipboard source</span>
+        <span>Official ISA Fixtures</span>
+        <i data-lucide="external-link" class="w-3 h-3"></i>
+      </a>
+      <span class="text-slate-700">•</span>
+      <a href="https://fixtures.clipboard.app/isa/ladder?associationSeasonId=e94f3fa0-158f-11f0-ac93-6bf44416c9ad&associationActivityGradeIds=%5B%22711aa164-d787-11ef-bde6-6911b959edfa%22%5D&competitionGroupIds=%5B%222bc0fd94-8c12-4bad-ad4f-50585f703c0b%22%5D" target="_blank" class="text-xs text-slate-500 hover:text-sky-400 inline-flex items-center gap-1">
+        <span>Official ISA Ladder</span>
         <i data-lucide="external-link" class="w-3 h-3"></i>
       </a>
     </footer>
@@ -66,11 +123,28 @@
 
   <script>
     let currentFilter = 'all';
-    let fixtures = [];
+    let allDivisionFixtures = []; // Every match in 14s Div 2
+    let sacsFixtures = [];        // Filtered strictly to St Andrew's 14A
+    let currentLadder = [];
+
+    function switchMainTab(tab) {
+      const isDraw = tab === 'draw';
+      document.getElementById('view-draw').classList.toggle('hidden', !isDraw);
+      document.getElementById('view-ladder').classList.toggle('hidden', isDraw);
+
+      document.getElementById('main-tab-draw').className = isDraw
+        ? 'py-2 rounded-lg bg-sky-500 text-slate-950 flex items-center justify-center gap-1.5 shadow'
+        : 'py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+
+      document.getElementById('main-tab-ladder').className = !isDraw
+        ? 'py-2 rounded-lg bg-sky-500 text-slate-950 flex items-center justify-center gap-1.5 shadow'
+        : 'py-2 rounded-lg text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+    }
 
     function parseDomFallback(domArray) {
       if (!Array.isArray(domArray)) return [];
       const parsed = [];
+      const seenKeys = new Set();
 
       domArray.forEach(block => {
         if (!block || !block.startsWith('Round ')) return;
@@ -83,25 +157,27 @@
 
         if (vsIdx === -1 || calIdx === -1) return;
 
-        // Home team info (before 'vs')
         const homeSchool = lines[3] || 'Home';
-        const homeTeamCode = lines[5] || '';
+        const homeTeamCode = (lines[5] || '').replace(/\s+/g, '');
         const homeTeam = `${homeSchool} ${homeTeamCode}`.trim();
 
-        // Away team info (after 'vs')
         const awaySchool = lines[vsIdx + 1] || 'Away';
-        const awayTeamCode = lines[vsIdx + 3] || '';
+        const awayTeamCode = (lines[vsIdx + 3] || '').replace(/\s+/g, '');
         const awayTeam = `${awaySchool} ${awayTeamCode}`.trim();
 
-        // Score & Winner lines (between awayTeamCode and 'calendar_today')
+        // Deduplicate rows if DOM matched both tr and inner row
+        const uniqueKey = `${round}_${homeTeam}_${awayTeam}`;
+        if (seenKeys.has(uniqueKey)) return;
+        seenKeys.add(uniqueKey);
+
         const resultLines = lines.slice(vsIdx + 4, calIdx);
         const scoreLine = resultLines[0] || '-';
-        const outcomeText = (resultLines[1] || '').toLowerCase(); // e.g., "oakhill wins" or "draw"
+        const outcomeText = (resultLines[1] || '').toLowerCase();
 
         let homeScore = null;
         let awayScore = null;
         let status = 'UPCOMING';
-        let sacsResult = null; // 'WIN', 'LOSS', 'DRAW'
+        let winner = null; // 'HOME', 'AWAY', 'DRAW'
 
         const scoreMatch = scoreLine.match(/^(\d+)\s*-\s*(\d+)$/);
         if (scoreMatch) {
@@ -111,56 +187,50 @@
           const low = Math.min(n1, n2);
           status = 'COMPLETED';
 
-          const sacsIsHome = homeSchool.toLowerCase().includes('andrew');
-
           if (n1 === n2 || outcomeText.includes('draw') || outcomeText.includes('tie')) {
             homeScore = n1;
             awayScore = n2;
-            sacsResult = 'DRAW';
+            winner = 'DRAW';
           } else if (outcomeText.includes('wins')) {
-            // Match Clipboard's explicit "[School] wins" line
             const homeWon = outcomeText.includes(homeSchool.toLowerCase());
             const awayWon = outcomeText.includes(awaySchool.toLowerCase());
-
             if (homeWon) {
               homeScore = high;
               awayScore = low;
-              sacsResult = sacsIsHome ? 'WIN' : 'LOSS';
+              winner = 'HOME';
             } else if (awayWon) {
               homeScore = low;
               awayScore = high;
-              sacsResult = !sacsIsHome ? 'WIN' : 'LOSS';
+              winner = 'AWAY';
             }
           } else {
-            // Fallback if no outcome text is present
             homeScore = n1;
             awayScore = n2;
-            const sacsScore = sacsIsHome ? homeScore : awayScore;
-            const oppScore = sacsIsHome ? awayScore : homeScore;
-            sacsResult = sacsScore > oppScore ? 'WIN' : (sacsScore < oppScore ? 'LOSS' : 'DRAW');
+            winner = homeScore > awayScore ? 'HOME' : 'AWAY';
           }
         }
 
-        // Date & Time (after 'calendar_today')
+        const sacsIsHome = homeSchool.toLowerCase().includes('andrew');
+        const sacsIsAway = awaySchool.toLowerCase().includes('andrew');
+        let sacsResult = null;
+        if (status === 'COMPLETED' && (sacsIsHome || sacsIsAway)) {
+          if (winner === 'DRAW') sacsResult = 'DRAW';
+          else if ((sacsIsHome && winner === 'HOME') || (sacsIsAway && winner === 'AWAY')) sacsResult = 'WIN';
+          else sacsResult = 'LOSS';
+        }
+
         const dateStr = lines[calIdx + 1] || '';
         const rawTimeStr = lines[calIdx + 2] || '';
         const timeStr = rawTimeStr === '2:34am' ? 'Time TBA' : rawTimeStr;
 
-        // Location & Address (after 'location_on')
         let court = 'Venue TBA';
-        let venueSub = '';
         let address = '';
-
         if (locIdx !== -1) {
           const locLines = lines.slice(locIdx + 1);
           if (locLines[0] && locLines[0] !== '-') {
             court = locLines[0];
-            if (locLines.length === 2) {
-              address = locLines[1];
-            } else if (locLines.length >= 3) {
-              venueSub = locLines[1];
-              address = locLines.slice(2).join(', ');
-            }
+            if (locLines.length === 2) address = locLines[1];
+            else if (locLines.length >= 3) address = locLines.slice(2).join(', ');
           }
         }
 
@@ -172,18 +242,50 @@
           awayTeam,
           homeScore,
           awayScore,
+          winner,
           sacsResult,
           outcomeLabel: resultLines[1] || '',
           status,
           dateStr,
           timeStr,
           court,
-          venueSub,
-          address
+          address,
+          isSacsGame: sacsIsHome || sacsIsAway
         });
       });
 
       return parsed;
+    }
+
+    function buildLadder(matches) {
+      const teams = {};
+
+      matches.forEach(m => {
+        if (!teams[m.homeTeam]) teams[m.homeTeam] = { name: m.homeTeam, p: 0, w: 0, d: 0, l: 0, pf: 0, pa: 0, diff: 0, pts: 0 };
+        if (!teams[m.awayTeam]) teams[m.awayTeam] = { name: m.awayTeam, p: 0, w: 0, d: 0, l: 0, pf: 0, pa: 0, diff: 0, pts: 0 };
+
+        if (m.status === 'COMPLETED' && m.homeScore !== null && m.awayScore !== null) {
+          const h = teams[m.homeTeam];
+          const a = teams[m.awayTeam];
+
+          h.p++; a.p++;
+          h.pf += m.homeScore; h.pa += m.awayScore; h.diff = h.pf - h.pa;
+          a.pf += m.awayScore; a.pa += m.homeScore; a.diff = a.pf - a.pa;
+
+          if (m.winner === 'HOME') {
+            h.w++; h.pts += 3;
+            a.l++; a.pts += 1;
+          } else if (m.winner === 'AWAY') {
+            a.w++; a.pts += 3;
+            h.l++; h.pts += 1;
+          } else {
+            h.d++; h.pts += 2;
+            a.d++; a.pts += 2;
+          }
+        }
+      });
+
+      return Object.values(teams).sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.pf - a.pf || a.name.localeCompare(b.name));
     }
 
     function getMapsUrl(court, address) {
@@ -201,7 +303,9 @@
             document.getElementById('syncStatus').innerText = `Updated ${dt.toLocaleDateString('en-AU', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`;
           }
           if (data.domFallback) {
-            fixtures = parseDomFallback(data.domFallback);
+            allDivisionFixtures = parseDomFallback(data.domFallback);
+            sacsFixtures = allDivisionFixtures.filter(f => f.isSacsGame);
+            currentLadder = buildLadder(allDivisionFixtures);
           }
         }
       } catch (e) {
@@ -211,7 +315,7 @@
     }
 
     function getNextGame() {
-      return fixtures.find(f => f.status !== 'COMPLETED') || fixtures[fixtures.length - 1];
+      return sacsFixtures.find(f => f.status !== 'COMPLETED') || sacsFixtures[sacsFixtures.length - 1];
     }
 
     function formatWhatsAppText(game) {
@@ -219,7 +323,7 @@
       const appUrl = window.location.href.split('?')[0];
 
       if (game.status === 'COMPLETED') {
-        return `🏀 *SACS 14A Result (${game.round})*\n*${game.homeTeam}* ${game.homeScore} – ${game.awayScore} *${game.awayTeam}*\n(${game.outcomeLabel})\n\n📅 Full draw & next week's game:\n${appUrl}`;
+        return `🏀 *SACS 14A Result (${game.round})*\n*${game.homeTeam}* ${game.homeScore} – ${game.awayScore} *${game.awayTeam}*\n(${game.outcomeLabel})\n\n📅 Full draw & Div 2 Ladder:\n${appUrl}`;
       }
 
       let locText = `📍 *Court:* ${game.court}`;
@@ -227,11 +331,11 @@
         locText += `\n🗺️ *Address:* ${game.address}\n🚗 *Directions:* ${mapsLink}`;
       }
 
-      return `🏀 *SACS 14A Basketball – ${game.round}*\n📅 *Sat ${game.dateStr} @ ${game.timeStr}*\n🆚 ${game.homeTeam} vs ${game.awayTeam}\n${locText}\n\n🔗 *Live Draw & Scores:* ${appUrl}`;
+      return `🏀 *SACS 14A Basketball – ${game.round}*\n📅 *Sat ${game.dateStr} @ ${game.timeStr}*\n🆚 ${game.homeTeam} vs ${game.awayTeam}\n${locText}\n\n🔗 *Live Draw & Ladder:* ${appUrl}`;
     }
 
     function shareGameToWhatsApp(idx) {
-      const game = fixtures[idx];
+      const game = sacsFixtures[idx];
       if (!game) return;
       window.open(`https://wa.me/?text=${encodeURIComponent(formatWhatsAppText(game))}`, '_blank');
     }
@@ -240,6 +344,13 @@
       const next = getNextGame();
       if (!next) return;
       window.open(`https://wa.me/?text=${encodeURIComponent(formatWhatsAppText(next))}`, '_blank');
+    }
+
+    function shareLadderToWhatsApp() {
+      const appUrl = window.location.href.split('?')[0];
+      const lines = currentLadder.map((t, i) => `${i + 1}. *${t.name}* — ${t.pts}pts (${t.w}W-${t.l}L, ${t.diff >= 0 ? '+' + t.diff : t.diff})`);
+      const text = `🏆 *ISA 14s Division 2 Standings*\n\n${lines.join('\n')}\n\n🔗 *Full Draw & Results:* ${appUrl}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     function setFilter(f) {
@@ -256,7 +367,7 @@
     function render() {
       // 1. Season Record Summary
       let wins = 0, losses = 0, played = 0;
-      fixtures.forEach(f => {
+      sacsFixtures.forEach(f => {
         if (f.status === 'COMPLETED') {
           played++;
           if (f.sacsResult === 'WIN') wins++;
@@ -328,9 +439,9 @@
         `;
       }
 
-      // 3. Full Season List
+      // 3. SACS 14A Season List
       const listContainer = document.getElementById('fixturesContainer');
-      const filtered = fixtures.map((f, idx) => ({ ...f, idx })).filter(f => {
+      const filtered = sacsFixtures.map((f, idx) => ({ ...f, idx })).filter(f => {
         if (currentFilter === 'upcoming') return f.status !== 'COMPLETED';
         if (currentFilter === 'results') return f.status === 'COMPLETED';
         return true;
@@ -383,6 +494,43 @@
           </div>
         `;
       }).join('');
+
+      // 4. Render Division 2 Ladder Table
+      const ladderBody = document.getElementById('ladderTableBody');
+      ladderBody.innerHTML = currentLadder.map((t, idx) => {
+        const isSacs = t.name.toLowerCase().includes('andrew');
+        const diffStr = t.diff > 0 ? `+${t.diff}` : `${t.diff}`;
+        return `
+          <tr class="${isSacs ? 'bg-sky-500/15 font-bold' : 'hover:bg-slate-800/40'}">
+            <td class="py-3 pl-3 font-bold ${isSacs ? 'text-sky-400' : 'text-slate-400'}">${idx + 1}</td>
+            <td class="py-3 ${isSacs ? 'text-sky-400 font-bold' : 'text-white font-semibold'}">${t.name}</td>
+            <td class="py-3 text-center text-slate-300">${t.p}</td>
+            <td class="py-3 text-center text-emerald-400 font-semibold">${t.w}</td>
+            <td class="py-3 text-center text-rose-400 font-semibold">${t.l}</td>
+            <td class="py-3 text-center text-slate-400 text-[11px]">${t.pf}:${t.pa}</td>
+            <td class="py-3 text-center ${t.diff > 0 ? 'text-emerald-400' : (t.diff < 0 ? 'text-rose-400' : 'text-slate-400')}">${diffStr}</td>
+            <td class="py-3 pr-3 text-right font-black text-white">${t.pts}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // 5. Render All Completed Division 2 Results
+      const completedDivMatches = allDivisionFixtures.filter(m => m.status === 'COMPLETED');
+      const divContainer = document.getElementById('allDivMatchesContainer');
+      if (completedDivMatches.length === 0) {
+        divContainer.innerHTML = `<p class="text-xs text-slate-500">No completed matches yet.</p>`;
+      } else {
+        divContainer.innerHTML = completedDivMatches.map(m => `
+          <div class="rounded-xl bg-slate-900/80 border border-slate-800 p-3 flex items-center justify-between text-xs">
+            <span class="text-[11px] font-bold text-slate-400 w-16">${m.round}</span>
+            <div class="flex-1 flex items-center justify-between px-2">
+              <span class="${m.winner === 'HOME' ? 'font-bold text-white' : 'text-slate-400'}">${m.homeTeam}</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 font-black text-sky-400">${m.homeScore} - ${m.awayScore}</span>
+              <span class="${m.winner === 'AWAY' ? 'font-bold text-white' : 'text-slate-400'} text-right">${m.awayTeam}</span>
+            </div>
+          </div>
+        `).join('');
+      }
 
       lucide.createIcons();
     }
