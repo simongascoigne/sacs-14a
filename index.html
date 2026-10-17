@@ -23,7 +23,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base leading-tight text-white">St Andrew's 14A</h1>
-        <p id="syncStatus" class="text-[11px] text-sky-400">ISA Basketball • Auto-Synced</p>
+        <p id="syncStatus" class="text-[11px] text-sky-400">ISA 14s Div 2 • Auto-Synced</p>
       </div>
     </div>
     <button onclick="shareNextGameToWhatsApp()" class="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md">
@@ -33,6 +33,9 @@
   </header>
 
   <main class="max-w-md mx-auto px-4 pt-4 space-y-6">
+
+    <!-- Season Record Summary Bar -->
+    <section id="recordSummary" class="grid grid-cols-3 gap-2"></section>
 
     <!-- NEXT GAME HERO CARD -->
     <section id="nextGameHero"></section>
@@ -62,72 +65,130 @@
   </main>
 
   <script>
-    // ISA Venue Decoder -> Real street addresses for Google/Apple Maps
-    const VENUE_MAP = {
-      "SUSAC": "Sydney Uni Sport & Aquatic Centre, Darlington Ln, Darlington NSW 2008",
-      "Sydney Uni": "Sydney Uni Sport & Aquatic Centre, Darlington Ln, Darlington NSW 2008",
-      "SACS": "St Andrew's Cathedral School, 474 Kent St, Sydney NSW 2000",
-      "OAK": "Oakhill College Centenary Sports Centre, 423 Old Northern Rd, Castle Hill NSW 2154",
-      "Centenary": "Oakhill College Centenary Sports Centre, 423 Old Northern Rd, Castle Hill NSW 2154",
-      "Benildus": "Oakhill College, 423 Old Northern Rd, Castle Hill NSW 2154",
-      "NBISC": "Northern Beaches Indoor Sports Centre, Jacksons Rd, Warriewood NSW 2102",
-      "AUG": "Northern Beaches Indoor Sports Centre, Jacksons Rd, Warriewood NSW 2102",
-      "RED": "Galuwa Recreation Centre, Lane Cove NSW 2066",
-      "Galuwa": "Galuwa Recreation Centre, Lane Cove NSW 2066",
-      "RLC": "Redlands, 272 Military Rd, Cremorne NSW 2090",
-      "BAR": "Barker College Rosewood Centre, Unwin Rd, Waitara NSW 2077",
-      "Rosewood": "Barker College Rosewood Centre, Unwin Rd, Waitara NSW 2077",
-      "SPC": "St Patrick's College, Francis St, Strathfield NSW 2135",
-      "Auburn": "Auburn Basketball Centre, Church St, Lidcombe NSW 2141",
-      "SPX": "St Pius X College Oxford Falls, Dreadnought Rd, Oxford Falls NSW 2100",
-      "SPY": "Hoops Capital East, 1 Driver Ave, Moore Park NSW 2021"
-    };
-
-    function resolveAddress(venueStr) {
-      if (!venueStr) return "Sydney NSW";
-      for (const [key, addr] of Object.entries(VENUE_MAP)) {
-        if (venueStr.toLowerCase().includes(key.toLowerCase())) return addr;
-      }
-      return venueStr + " NSW";
-    }
-
-    function getMapsUrl(venueStr, rawAddress) {
-      const query = rawAddress || resolveAddress(venueStr);
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
-    }
-
     let currentFilter = 'all';
     let fixtures = [];
 
-    //Recursively find the fixture array inside Clipboard's JSON payload
-    function extractFixturesFromClipboard(payloads) {
-      const found = [];
-      function walk(obj) {
-        if (!obj || typeof obj !== 'object') return;
-        if (Array.isArray(obj)) {
-          obj.forEach(item => {
-            if (item && typeof item === 'object' && (item.homeTeam || item.awayTeam || item.startTime || item.dateTime)) {
-              found.push({
-                round: item.roundName || item.round?.name || item.round || `Round ${found.length + 1}`,
-                date: item.startTime || item.dateTime || item.date,
-                homeTeam: item.homeTeam?.name || item.homeOrganisation?.name || item.homeTeam || "TBA",
-                awayTeam: item.awayTeam?.name || item.awayOrganisation?.name || item.awayTeam || "TBA",
-                homeScore: item.homeScore ?? item.homeTeam?.score ?? null,
-                awayScore: item.awayScore ?? item.awayTeam?.score ?? null,
-                venue: item.facility?.name || item.location?.name || item.venueName || item.venue || "TBA",
-                address: item.facility?.address || item.location?.address || null,
-                status: (item.status === 'COMPLETED' || item.status === 'COMPLETE' || (item.homeScore !== null && item.homeScore !== undefined)) ? 'COMPLETED' : 'UPCOMING'
-              });
-            } else {
-              walk(item);
+    function parseDomFallback(domArray) {
+      if (!Array.isArray(domArray)) return [];
+      const parsed = [];
+
+      domArray.forEach(block => {
+        if (!block || !block.startsWith('Round ')) return;
+        const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+
+        const round = lines[0];
+        const vsIdx = lines.indexOf('vs');
+        const calIdx = lines.indexOf('calendar_today');
+        const locIdx = lines.indexOf('location_on');
+
+        if (vsIdx === -1 || calIdx === -1) return;
+
+        // Home team info (before 'vs')
+        const homeSchool = lines[3] || 'Home';
+        const homeTeamCode = lines[5] || '';
+        const homeTeam = `${homeSchool} ${homeTeamCode}`.trim();
+
+        // Away team info (after 'vs')
+        const awaySchool = lines[vsIdx + 1] || 'Away';
+        const awayTeamCode = lines[vsIdx + 3] || '';
+        const awayTeam = `${awaySchool} ${awayTeamCode}`.trim();
+
+        // Score & Winner lines (between awayTeamCode and 'calendar_today')
+        const resultLines = lines.slice(vsIdx + 4, calIdx);
+        const scoreLine = resultLines[0] || '-';
+        const outcomeText = (resultLines[1] || '').toLowerCase(); // e.g., "oakhill wins" or "draw"
+
+        let homeScore = null;
+        let awayScore = null;
+        let status = 'UPCOMING';
+        let sacsResult = null; // 'WIN', 'LOSS', 'DRAW'
+
+        const scoreMatch = scoreLine.match(/^(\d+)\s*-\s*(\d+)$/);
+        if (scoreMatch) {
+          const n1 = parseInt(scoreMatch[1], 10);
+          const n2 = parseInt(scoreMatch[2], 10);
+          const high = Math.max(n1, n2);
+          const low = Math.min(n1, n2);
+          status = 'COMPLETED';
+
+          const sacsIsHome = homeSchool.toLowerCase().includes('andrew');
+
+          if (n1 === n2 || outcomeText.includes('draw') || outcomeText.includes('tie')) {
+            homeScore = n1;
+            awayScore = n2;
+            sacsResult = 'DRAW';
+          } else if (outcomeText.includes('wins')) {
+            // Match Clipboard's explicit "[School] wins" line
+            const homeWon = outcomeText.includes(homeSchool.toLowerCase());
+            const awayWon = outcomeText.includes(awaySchool.toLowerCase());
+
+            if (homeWon) {
+              homeScore = high;
+              awayScore = low;
+              sacsResult = sacsIsHome ? 'WIN' : 'LOSS';
+            } else if (awayWon) {
+              homeScore = low;
+              awayScore = high;
+              sacsResult = !sacsIsHome ? 'WIN' : 'LOSS';
             }
-          });
-        } else {
-          Object.values(obj).forEach(walk);
+          } else {
+            // Fallback if no outcome text is present
+            homeScore = n1;
+            awayScore = n2;
+            const sacsScore = sacsIsHome ? homeScore : awayScore;
+            const oppScore = sacsIsHome ? awayScore : homeScore;
+            sacsResult = sacsScore > oppScore ? 'WIN' : (sacsScore < oppScore ? 'LOSS' : 'DRAW');
+          }
         }
-      }
-      walk(payloads);
-      return found.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Date & Time (after 'calendar_today')
+        const dateStr = lines[calIdx + 1] || '';
+        const rawTimeStr = lines[calIdx + 2] || '';
+        const timeStr = rawTimeStr === '2:34am' ? 'Time TBA' : rawTimeStr;
+
+        // Location & Address (after 'location_on')
+        let court = 'Venue TBA';
+        let venueSub = '';
+        let address = '';
+
+        if (locIdx !== -1) {
+          const locLines = lines.slice(locIdx + 1);
+          if (locLines[0] && locLines[0] !== '-') {
+            court = locLines[0];
+            if (locLines.length === 2) {
+              address = locLines[1];
+            } else if (locLines.length >= 3) {
+              venueSub = locLines[1];
+              address = locLines.slice(2).join(', ');
+            }
+          }
+        }
+
+        parsed.push({
+          round,
+          homeSchool,
+          awaySchool,
+          homeTeam,
+          awayTeam,
+          homeScore,
+          awayScore,
+          sacsResult,
+          outcomeLabel: resultLines[1] || '',
+          status,
+          dateStr,
+          timeStr,
+          court,
+          venueSub,
+          address
+        });
+      });
+
+      return parsed;
+    }
+
+    function getMapsUrl(court, address) {
+      const query = address || (court !== 'Venue TBA' ? `${court} NSW` : 'Sydney NSW');
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
     }
 
     async function loadData() {
@@ -139,45 +200,46 @@
             const dt = new Date(data.updatedAt);
             document.getElementById('syncStatus').innerText = `Updated ${dt.toLocaleDateString('en-AU', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`;
           }
-          const extracted = extractFixturesFromClipboard(data.apiPayloads || data);
-          if (extracted.length > 0) fixtures = extracted;
+          if (data.domFallback) {
+            fixtures = parseDomFallback(data.domFallback);
+          }
         }
       } catch (e) {
-        console.log('Using fallback preview fixtures until first GitHub Action run completes.');
+        console.error('Error loading sacs-14a.json:', e);
       }
       render();
     }
 
     function getNextGame() {
-      const now = new Date();
-      return fixtures.find(f => f.status !== 'COMPLETED' && new Date(f.date) >= new Date(now - 3 * 3600000)) || fixtures[fixtures.length - 1];
+      return fixtures.find(f => f.status !== 'COMPLETED') || fixtures[fixtures.length - 1];
     }
 
     function formatWhatsAppText(game) {
-      const dt = new Date(game.date);
-      const dateStr = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
-      const timeStr = dt.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
-      const addr = game.address || resolveAddress(game.venue);
-      const mapsLink = getMapsUrl(game.venue, game.address);
+      const mapsLink = getMapsUrl(game.court, game.address);
+      const appUrl = window.location.href.split('?')[0];
 
       if (game.status === 'COMPLETED') {
-        return `🏀 *SACS 14A Final Score (${game.round})*\n${game.homeTeam} ${game.homeScore} - ${game.awayScore} ${game.awayTeam}\n\n📅 Full draw & next week's details: ${window.location.href}`;
+        return `🏀 *SACS 14A Result (${game.round})*\n*${game.homeTeam}* ${game.homeScore} – ${game.awayScore} *${game.awayTeam}*\n(${game.outcomeLabel})\n\n📅 Full draw & next week's game:\n${appUrl}`;
       }
-      return `🏀 *SACS 14A Basketball – ${game.round}*\n📅 *${dateStr} at ${timeStr}*\n🆚 ${game.homeTeam} vs ${game.awayTeam}\n📍 *Court:* ${game.venue}\n🗺️ *Address:* ${addr}\n🚗 *Directions:* ${mapsLink}\n\n🔗 *Live Draw & Scores:* ${window.location.href}`;
+
+      let locText = `📍 *Court:* ${game.court}`;
+      if (game.address) {
+        locText += `\n🗺️ *Address:* ${game.address}\n🚗 *Directions:* ${mapsLink}`;
+      }
+
+      return `🏀 *SACS 14A Basketball – ${game.round}*\n📅 *Sat ${game.dateStr} @ ${game.timeStr}*\n🆚 ${game.homeTeam} vs ${game.awayTeam}\n${locText}\n\n🔗 *Live Draw & Scores:* ${appUrl}`;
     }
 
     function shareGameToWhatsApp(idx) {
       const game = fixtures[idx];
       if (!game) return;
-      const text = formatWhatsAppText(game);
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(formatWhatsAppText(game))}`, '_blank');
     }
 
     function shareNextGameToWhatsApp() {
       const next = getNextGame();
       if (!next) return;
-      const text = formatWhatsAppText(next);
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(formatWhatsAppText(next))}`, '_blank');
     }
 
     function setFilter(f) {
@@ -192,32 +254,54 @@
     }
 
     function render() {
+      // 1. Season Record Summary
+      let wins = 0, losses = 0, played = 0;
+      fixtures.forEach(f => {
+        if (f.status === 'COMPLETED') {
+          played++;
+          if (f.sacsResult === 'WIN') wins++;
+          else if (f.sacsResult === 'LOSS') losses++;
+        }
+      });
+
+      document.getElementById('recordSummary').innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase text-slate-400 font-semibold">Played</p>
+          <p class="text-lg font-black text-white">${played}</p>
+        </div>
+        <div class="bg-slate-900 border border-emerald-500/20 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase text-emerald-400 font-semibold">Won</p>
+          <p class="text-lg font-black text-emerald-400">${wins}</p>
+        </div>
+        <div class="bg-slate-900 border border-rose-500/20 rounded-xl p-2.5 text-center">
+          <p class="text-[10px] uppercase text-rose-400 font-semibold">Lost</p>
+          <p class="text-lg font-black text-rose-400">${losses}</p>
+        </div>
+      `;
+
+      // 2. Next Game Hero Card
       const next = getNextGame();
       const hero = document.getElementById('nextGameHero');
 
       if (next) {
-        const dt = new Date(next.date);
-        const dateStr = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
-        const timeStr = dt.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
-        const decodedAddr = next.address || resolveAddress(next.venue);
-
+        const sacsIsHome = next.homeTeam.toLowerCase().includes('andrew');
         hero.innerHTML = `
           <div class="rounded-2xl bg-gradient-to-br from-sky-500/20 via-slate-900 to-slate-900 border border-sky-500/40 p-4 shadow-xl space-y-4">
             <div class="flex items-center justify-between">
               <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-sky-400 text-slate-950 uppercase tracking-wide">
                 Next Game • ${next.round}
               </span>
-              <span class="text-xs font-bold text-sky-300">${dateStr} • ${timeStr}</span>
+              <span class="text-xs font-bold text-sky-300">Sat ${next.dateStr} • ${next.timeStr}</span>
             </div>
 
             <div class="grid grid-cols-7 items-center text-center py-1">
               <div class="col-span-3">
-                <p class="font-bold text-sm sm:text-base text-white leading-snug">${next.homeTeam}</p>
+                <p class="font-bold text-sm sm:text-base ${sacsIsHome ? 'text-sky-400' : 'text-white'} leading-snug">${next.homeTeam}</p>
                 <span class="text-[10px] text-slate-400 uppercase">Home</span>
               </div>
               <div class="col-span-1 text-xs font-black text-slate-500">VS</div>
               <div class="col-span-3">
-                <p class="font-bold text-sm sm:text-base text-white leading-snug">${next.awayTeam}</p>
+                <p class="font-bold text-sm sm:text-base ${!sacsIsHome ? 'text-sky-400' : 'text-white'} leading-snug">${next.awayTeam}</p>
                 <span class="text-[10px] text-slate-400 uppercase">Away</span>
               </div>
             </div>
@@ -226,17 +310,17 @@
               <div class="flex items-start gap-2 text-xs">
                 <i data-lucide="map-pin" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
                 <div>
-                  <p class="font-semibold text-white">${next.venue}</p>
-                  <p class="text-[11px] text-slate-400">${decodedAddr}</p>
+                  <p class="font-semibold text-white">${next.court}</p>
+                  ${next.address ? `<p class="text-[11px] text-slate-400">${next.address}</p>` : ''}
                 </div>
               </div>
 
               <div class="grid grid-cols-2 gap-2">
-                <a href="${getMapsUrl(next.venue, next.address)}" target="_blank" class="py-2.5 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5">
+                <a href="${getMapsUrl(next.court, next.address)}" target="_blank" class="py-2.5 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5">
                   <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Open in Maps
                 </a>
                 <button onclick="shareNextGameToWhatsApp()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700">
-                  <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Share Game
+                  <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share to Chat
                 </button>
               </div>
             </div>
@@ -244,6 +328,7 @@
         `;
       }
 
+      // 3. Full Season List
       const listContainer = document.getElementById('fixturesContainer');
       const filtered = fixtures.map((f, idx) => ({ ...f, idx })).filter(f => {
         if (currentFilter === 'upcoming') return f.status !== 'COMPLETED';
@@ -252,19 +337,16 @@
       });
 
       listContainer.innerHTML = filtered.map(f => {
-        const dt = new Date(f.date);
-        const dateStr = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
-        const timeStr = dt.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
         const isDone = f.status === 'COMPLETED';
+        const sacsIsHome = f.homeTeam.toLowerCase().includes('andrew');
+        const sacsScore = sacsIsHome ? f.homeScore : f.awayScore;
+        const oppScore = sacsIsHome ? f.awayScore : f.homeScore;
 
-        const sacsIsHome = f.homeTeam.toLowerCase().includes('andrew') || f.homeTeam.toLowerCase().includes('sacs');
-        const sacsScore = sacsIsHome ? Number(f.homeScore) : Number(f.awayScore);
-        const oppScore = sacsIsHome ? Number(f.awayScore) : Number(f.homeScore);
         let badge = '';
-        if (isDone && f.homeScore !== null) {
-          if (sacsScore > oppScore) badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">WIN</span>`;
-          else if (sacsScore < oppScore) badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">LOSS</span>`;
-          else badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-700 text-slate-300">DRAW</span>`;
+        if (isDone) {
+          if (f.sacsResult === 'WIN') badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">WIN ${sacsScore}-${oppScore}</span>`;
+          else if (f.sacsResult === 'LOSS') badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">LOSS ${sacsScore}-${oppScore}</span>`;
+          else badge = `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-700 text-slate-300">DRAW ${sacsScore}-${oppScore}</span>`;
         }
 
         return `
@@ -274,7 +356,7 @@
                 <span class="font-bold text-slate-300">${f.round}</span>
                 ${badge}
               </div>
-              <span class="text-slate-400 font-medium">${dateStr} • ${timeStr}</span>
+              <span class="text-slate-400 font-medium">Sat ${f.dateStr} • ${f.timeStr}</span>
             </div>
 
             <div class="space-y-1.5">
@@ -288,11 +370,14 @@
               </div>
             </div>
 
-            <div class="pt-2.5 border-t border-slate-800/70 flex items-center justify-between text-xs">
-              <span class="text-slate-400 truncate pr-2">📍 ${f.venue}</span>
+            <div class="pt-2.5 border-t border-slate-800/70 flex items-center justify-between text-xs gap-2">
+              <div class="truncate">
+                <p class="text-slate-300 font-medium truncate">📍 ${f.court}</p>
+                ${f.address ? `<p class="text-[11px] text-slate-500 truncate">${f.address}</p>` : ''}
+              </div>
               <div class="flex items-center gap-3 shrink-0">
-                <button onclick="shareGameToWhatsApp(${f.idx})" class="text-emerald-400 hover:underline font-medium">WhatsApp</button>
-                <a href="${getMapsUrl(f.venue, f.address)}" target="_blank" class="text-sky-400 hover:underline font-semibold">Maps →</a>
+                <button onclick="shareGameToWhatsApp(${f.idx})" class="text-emerald-400 hover:underline font-semibold">WhatsApp</button>
+                ${f.court !== 'Venue TBA' ? `<a href="${getMapsUrl(f.court, f.address)}" target="_blank" class="text-sky-400 hover:underline font-semibold">Maps →</a>` : ''}
               </div>
             </div>
           </div>
